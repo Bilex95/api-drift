@@ -66,3 +66,20 @@ test("rates stay within a sane band (drift guard)", async () => {
     assert.ok(rate > 0 && rate < 100000, `rate out of band: ${rate}`);
   }
 });
+
+test("GET /currencies matches the documented shape", async () => {
+  const { res, body } = await get("/currencies");
+  assert.ok(res.ok, `expected 2xx, got ${res.status}`);
+  assert.ok(body !== null && typeof body === "object", "body must be an object");
+  const entries = Object.entries(body);
+  assert.ok(entries.length > 0, "body must be a non-empty object");
+
+  for (const [code, name] of entries) {
+    assert.match(code, /^[A-Z]{3}$/, `key must be a 3-letter currency code: ${code}`);
+    assert.equal(typeof name, "string", `value for ${code} must be a string`);
+    assert.ok(name.trim().length > 0, `value for ${code} must be non-empty`);
+  }
+
+  assert.ok("EUR" in body, "expected EUR to be present in currencies");
+  assert.ok("USD" in body, "expected USD to be present in currencies");
+});
